@@ -139,9 +139,9 @@ export default function useLadderAnimation({
         step++;
       } else {
         clearInterval(interval);
-        setTimeout(() => animatePlayer(playerIndex + 1, results), 250);
+        setTimeout(() => animatePlayer(playerIndex + 1, results), 100);
       }
-    }, 175);
+    }, 100);
   };
 
   // 모든 플레이어 함께 애니메이션
@@ -213,7 +213,7 @@ export default function useLadderAnimation({
         setIsPlaying(false);
         setAnimationComplete(true);
       }
-    }, 350);
+    }, 100);
   };
 
   return {
