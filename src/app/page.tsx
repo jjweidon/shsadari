@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Fragment, useRef } from "react";
+import { useState, useEffect, Fragment, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ClipboardIcon, CheckIcon } from "@heroicons/react/24/outline";
 
@@ -149,28 +149,36 @@ const assignCharacters = (participants: string[]) => {
   }));
 };
 
-// 팀 생성 함수 (공평 분배 알고리즘 포함)
+// 팀 생성 함수 (공평 분배 알고리즘)
 const createTeams = (totalParticipants: number, membersPerTeam: number) => {
   // 참가자 수가 100명 초과면 100명으로 제한
   const limitedParticipants = Math.min(totalParticipants, 100);
 
-  const numTeams = Math.ceil(limitedParticipants / membersPerTeam);
+  // 온전한 팀 수 (지정된 인원수로 완전히 채울 수 있는 팀 수)
+  const fullTeams = Math.floor(limitedParticipants / membersPerTeam);
 
-  // 남은 인원 계산
+  // 남은 인원
   const remainder = limitedParticipants % membersPerTeam;
 
-  // 기본 팀 크기 배열 생성 (모두 membersPerTeam으로 초기화)
-  const teamSizes = Array(numTeams).fill(membersPerTeam);
+  // 특수 케이스: 팀이 하나만 완전히 채워질 경우 (11명, 8명일 때와 같은 경우)
+  if (fullTeams === 1 && remainder > 0) {
+    // 두 팀으로 간단히 분할
+    return [membersPerTeam, remainder];
+  }
 
-  // 나머지가 있고 나머지가 팀 수보다 작으면 공평하게 분배
-  if (remainder > 0 && remainder < numTeams) {
-    // 남은 인원 처리 (균등하게 인원수를 분배, 적은 수의 팀에는 한 명씩 줄임)
-    for (
-      let i = numTeams - 1;
-      i >= numTeams - (membersPerTeam * numTeams - limitedParticipants);
-      i--
-    ) {
-      teamSizes[i] -= 1;
+  // 일반적인 경우 처리
+  const teamSizes = Array(fullTeams).fill(membersPerTeam);
+
+  // 남은 인원 처리
+  if (remainder > 0) {
+    if (remainder >= membersPerTeam / 2) {
+      // 남은 인원이 팀 크기의 절반 이상이면 새 팀 추가
+      teamSizes.push(remainder);
+    } else {
+      // 남은 인원이 적으면 기존 팀에 분배
+      for (let i = 0; i < remainder; i++) {
+        teamSizes[i]++;
+      }
     }
   }
 
@@ -317,7 +325,8 @@ const calculateLadderResults = (
   };
 };
 
-export default function Home() {
+// SearchParamsWrapper 컴포넌트 생성
+function LadderGame() {
   // URL 쿼리 파라미터 가져오기
   const searchParams = useSearchParams();
 
@@ -327,7 +336,7 @@ export default function Home() {
   >([]);
 
   // 팀 크기 선택 상태
-  const [membersPerTeam, setMembersPerTeam] = useState<number>(3);
+  const [membersPerTeam, setMembersPerTeam] = useState<number>(0);
 
   // 게임 옵션 상태
   const [showLadder, setShowLadder] = useState<boolean>(true);
@@ -436,10 +445,12 @@ export default function Home() {
 
   // 팀 크기 변경 시 팀 개수 계산
   useEffect(() => {
-    if (participantsWithCharacters.length > 0) {
+    if (participantsWithCharacters.length > 0 && membersPerTeam > 0) {
       setTeamSizes(
         createTeams(participantsWithCharacters.length, membersPerTeam)
       );
+    } else {
+      setTeamSizes([]);
     }
   }, [participantsWithCharacters.length, membersPerTeam]);
 
@@ -452,6 +463,12 @@ export default function Home() {
 
   // 사다리 생성
   const initializeLadder = () => {
+    // 팀당 인원수가 선택되지 않은 경우 경고 표시
+    if (membersPerTeam <= 0) {
+      alert("팀당 인원수를 먼저 선택해주세요.");
+      return;
+    }
+
     // 현재 컨테이너 크기 강제 업데이트
     if (containerRef.current) {
       setLadderDimensions({
@@ -1032,6 +1049,9 @@ export default function Home() {
     );
   };
 
+  // 팀당 인원수 선택 여부 확인
+  const isTeamSizeSelected = membersPerTeam > 0;
+
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <header className="text-center mb-8">
@@ -1139,6 +1159,7 @@ export default function Home() {
                         }
                         className="w-full p-2 border rounded text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-300"
                       >
+                        <option value={0}>선택하세요</option>
                         <option value={1}>1명</option>
                         <option value={2}>2명</option>
                         <option value={3}>3명</option>
@@ -1150,17 +1171,24 @@ export default function Home() {
                         <option value={9}>9명</option>
                         <option value={10}>10명</option>
                       </select>
+                      {!isTeamSizeSelected && (
+                        <p className="mt-1 text-sm text-red-500">
+                          팀당 인원수를 선택해주세요
+                        </p>
+                      )}
                       {teamSizes.length > 0 && (
                         <p className="mt-1 text-sm text-gray-500">
                           총 {teamSizes.length}개 팀:{" "}
                           {Array.from(new Set(teamSizes))
+                            .filter((size) => !isNaN(size))
                             .sort((a, b) => b - a)
                             .map((size) => {
                               const count = teamSizes.filter(
                                 (s) => s === size
                               ).length;
-                              return `[${size}명 * ${count}]`;
+                              return count > 0 ? `[${size}명 * ${count}]` : "";
                             })
+                            .filter((text) => text !== "")
                             .join("  ")}
                         </p>
                       )}
@@ -1211,7 +1239,10 @@ export default function Home() {
                   <button
                     onClick={initializeLadder}
                     className="bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                    disabled={participantsWithCharacters.length === 0}
+                    disabled={
+                      participantsWithCharacters.length === 0 ||
+                      !isTeamSizeSelected
+                    }
                   >
                     사다리 타기 시작!
                   </button>
@@ -1326,5 +1357,14 @@ export default function Home() {
         </a>
       </footer>
     </div>
+  );
+}
+
+// 메인 컴포넌트 - Suspense 경계 포함
+export default function Home() {
+  return (
+    <Suspense fallback={<div>로딩 중...</div>}>
+      <LadderGame />
+    </Suspense>
   );
 }
