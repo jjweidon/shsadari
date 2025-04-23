@@ -25,6 +25,7 @@ function LadderGame() {
   const [membersPerTeam, setMembersPerTeam] = useState<number>(0);
   const [showLadder, setShowLadder] = useState<boolean>(true);
   const [moveAllAtOnce, setMoveAllAtOnce] = useState<boolean>(true);
+  const [ladderSpeed, setLadderSpeed] = useState("normal");
   const [ladder, setLadder] = useState<boolean[][]>([]);
   const [teamSizes, setTeamSizes] = useState<number[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -57,6 +58,7 @@ function LadderGame() {
     setIsPlaying,
     setAnimationComplete,
     setCurrentPlayerIndex,
+    ladderSpeed,
   });
 
   // URL에서 참가자 데이터 가져오기
@@ -281,11 +283,13 @@ function LadderGame() {
                 membersPerTeam={membersPerTeam}
                 showLadder={showLadder}
                 moveAllAtOnce={moveAllAtOnce}
+                ladderSpeed={ladderSpeed}
                 teamSizes={teamSizes}
                 isTeamSizeSelected={isTeamSizeSelected}
                 onMembersPerTeamChange={setMembersPerTeam}
                 onShowLadderChange={setShowLadder}
                 onMoveAllAtOnceChange={setMoveAllAtOnce}
+                onLadderSpeedChange={setLadderSpeed}
                 onStartGame={initializeLadder}
                 participantsCount={participantsWithCharacters.length}
               />

@@ -8,11 +8,12 @@ interface UseLadderAnimationProps {
   setIsPlaying: (value: boolean) => void;
   setAnimationComplete: (value: boolean) => void;
   setCurrentPlayerIndex: (value: number) => void;
+  ladderSpeed: string;
 }
 
 interface UseLadderAnimationReturn {
   playerPositions: Path[];
-  setPlayerPositions: React.Dispatch<React.SetStateAction<Path[]>>;
+  setPlayerPositions: (value: Path[]) => void;
   pathSegments: {
     x1: number;
     y1: number;
@@ -21,20 +22,18 @@ interface UseLadderAnimationReturn {
     color: string;
     playerIndex: number;
   }[];
-  setPathSegments: React.Dispatch<
-    React.SetStateAction<
-      {
-        x1: number;
-        y1: number;
-        x2: number;
-        y2: number;
-        color: string;
-        playerIndex: number;
-      }[]
-    >
-  >;
+  setPathSegments: (
+    value: {
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      color: string;
+      playerIndex: number;
+    }[]
+  ) => void;
   previouslyAnimatedPlayers: number[];
-  setPreviouslyAnimatedPlayers: React.Dispatch<React.SetStateAction<number[]>>;
+  setPreviouslyAnimatedPlayers: (value: number[]) => void;
   animatePlayer: (playerIndex: number, results: ParticipantResult[]) => void;
   animateAllPlayers: (results: ParticipantResult[]) => void;
 }
@@ -46,6 +45,7 @@ export default function useLadderAnimation({
   setIsPlaying,
   setAnimationComplete,
   setCurrentPlayerIndex,
+  ladderSpeed,
 }: UseLadderAnimationProps): UseLadderAnimationReturn {
   const [playerPositions, setPlayerPositions] = useState<Path[]>([]);
   const [pathSegments, setPathSegments] = useState<
@@ -61,6 +61,20 @@ export default function useLadderAnimation({
   const [previouslyAnimatedPlayers, setPreviouslyAnimatedPlayers] = useState<
     number[]
   >([]);
+
+  // 속도에 따른 간격 결정
+  const getAnimationInterval = () => {
+    switch (ladderSpeed) {
+      case "slow":
+        return 300;
+      case "normal":
+        return 200;
+      case "fast":
+        return 100;
+      default:
+        return 100;
+    }
+  };
 
   // 단일 플레이어 애니메이션
   const animatePlayer = (playerIndex: number, results: ParticipantResult[]) => {
@@ -81,7 +95,10 @@ export default function useLadderAnimation({
 
     if (resultIndex === -1) {
       console.error("결과를 찾을 수 없습니다:", currentParticipant.name);
-      setTimeout(() => animatePlayer(playerIndex + 1, results), 100);
+      setTimeout(
+        () => animatePlayer(playerIndex + 1, results),
+        getAnimationInterval()
+      );
       return;
     }
 
@@ -139,9 +156,12 @@ export default function useLadderAnimation({
         step++;
       } else {
         clearInterval(interval);
-        setTimeout(() => animatePlayer(playerIndex + 1, results), 100);
+        setTimeout(
+          () => animatePlayer(playerIndex + 1, results),
+          getAnimationInterval()
+        );
       }
-    }, 100);
+    }, getAnimationInterval());
   };
 
   // 모든 플레이어 함께 애니메이션
@@ -197,7 +217,7 @@ export default function useLadderAnimation({
 
         setPathSegments((prev) => [...prev, ...newSegments]);
         step++;
-      } else if (step === maxPathLength - 1) {
+      } else if (step < maxPathLength) {
         setPlayerPositions((prev) => {
           return results.map((result, i) => {
             if (step < result.path.length && result.path[step]) {
@@ -213,7 +233,7 @@ export default function useLadderAnimation({
         setIsPlaying(false);
         setAnimationComplete(true);
       }
-    }, 100);
+    }, getAnimationInterval());
   };
 
   return {

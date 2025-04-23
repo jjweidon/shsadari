@@ -20,8 +20,10 @@ export default function ParticipantList({
     <div className={`mb-6 ${isPlaying ? "opacity-70" : ""}`}>
       <div className="flex flex-wrap items-center mb-4 gap-2">
         <div className="flex-1">
-          <h2 className="text-xl font-semibold text-blue-600">참가자 목록</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-sm sm:text-xl font-semibold text-blue-600">
+            참가자 목록
+          </h2>
+          <p className="hidden sm:block text-sm text-gray-500">
             URL에 data=이름1,이름2,... 형식으로 참가자를 추가할 수 있습니다.
           </p>
         </div>

@@ -4,11 +4,13 @@ interface GameSettingsProps {
   membersPerTeam: number;
   showLadder: boolean;
   moveAllAtOnce: boolean;
+  ladderSpeed: string;
   teamSizes: number[];
   isTeamSizeSelected: boolean;
   onMembersPerTeamChange: (value: number) => void;
   onShowLadderChange: (value: boolean) => void;
   onMoveAllAtOnceChange: (value: boolean) => void;
+  onLadderSpeedChange: (value: string) => void;
   onStartGame: () => void;
   participantsCount: number;
 }
@@ -17,11 +19,13 @@ export default function GameSettings({
   membersPerTeam,
   showLadder,
   moveAllAtOnce,
+  ladderSpeed,
   teamSizes,
   isTeamSizeSelected,
   onMembersPerTeamChange,
   onShowLadderChange,
   onMoveAllAtOnceChange,
+  onLadderSpeedChange,
   onStartGame,
   participantsCount,
 }: GameSettingsProps) {
@@ -94,7 +98,7 @@ export default function GameSettings({
             <label className="block text-gray-700 font-bold mb-2">
               이동 방식
             </label>
-            <div className="flex items-center">
+            <div className="flex items-center mb-2">
               <input
                 type="checkbox"
                 id="moveAllAtOnce"
@@ -105,6 +109,56 @@ export default function GameSettings({
               <label htmlFor="moveAllAtOnce" className="text-gray-500">
                 모두 함께 이동
               </label>
+            </div>
+
+            <label className="block text-gray-700 font-bold mt-3 mb-2">
+              이동 속도
+            </label>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="speedSlow"
+                  name="ladderSpeed"
+                  value="slow"
+                  checked={ladderSpeed === "slow"}
+                  onChange={() => onLadderSpeedChange("slow")}
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-300"
+                />
+                <label htmlFor="speedSlow" className="text-gray-500">
+                  천천히
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="speedNormal"
+                  name="ladderSpeed"
+                  value="normal"
+                  checked={ladderSpeed === "normal"}
+                  onChange={() => onLadderSpeedChange("normal")}
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-300"
+                />
+                <label htmlFor="speedNormal" className="text-gray-500">
+                  보통
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="speedFast"
+                  name="ladderSpeed"
+                  value="fast"
+                  checked={ladderSpeed === "fast"}
+                  onChange={() => onLadderSpeedChange("fast")}
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-300"
+                />
+                <label htmlFor="speedFast" className="text-gray-500">
+                  빠르게
+                </label>
+              </div>
             </div>
           </div>
         </div>
