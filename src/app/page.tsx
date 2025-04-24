@@ -264,6 +264,14 @@ function LadderGame() {
           <img src="/favicon.ico" alt="신한 로고" className="w-8 h-8" />
         </div>
         <p className="text-gray-600">5기 1회차 팀 구성을 위한 사다리타기</p>
+        <div className="flex justify-end mt-4">
+          <a
+            href="/random-number"
+            className="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition"
+          >
+            🎲 랜덤 번호 뽑기
+          </a>
+        </div>
       </header>
 
       <main className="max-w-4xl mx-auto">
@@ -343,7 +351,7 @@ function LadderGame() {
       <footer className="text-center mt-12 text-gray-500 text-sm">
         ©{" "}
         <a
-          href="https://github.com/jjweidon"
+          href="https://github.com/jjweidon/shsadari"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-blue-600 transition-colors"
