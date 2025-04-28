@@ -122,11 +122,11 @@ export default function RandomNumberPage() {
   const renderSortIcon = () => {
     switch (sortOrder) {
       case "asc":
-        return "↑";
+        return "🔼";
       case "desc":
-        return "↓";
+        return "🔽";
       default:
-        return "↕";
+        return "▶️";
     }
   };
 
@@ -259,14 +259,9 @@ export default function RandomNumberPage() {
               <h2 className="text-xl font-semibold text-blue-600">
                 {isDrawing ? "번호 추첨 중..." : "추첨 결과"}
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center text-sm gap-1">
                 <span className="text-gray-600">정렬</span>
-                <button
-                  onClick={toggleSortOrder}
-                  className="text-gray-600 hover:text-blue-600 transition-colors"
-                >
-                  {renderSortIcon()}
-                </button>
+                <button onClick={toggleSortOrder}>{renderSortIcon()}</button>
               </div>
             </div>
 
