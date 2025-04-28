@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
+type SortOrder = "none" | "asc" | "desc";
+
 export default function RandomNumberPage() {
   const [minNumber, setMinNumber] = useState<number | null>(null);
   const [maxNumber, setMaxNumber] = useState<number | null>(null);
@@ -12,6 +14,7 @@ export default function RandomNumberPage() {
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
   const [animatingNumber, setAnimatingNumber] = useState<number | null>(null);
   const [animationComplete, setAnimationComplete] = useState(false);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("none");
   const resultRef = useRef<HTMLDivElement>(null);
 
   // 유효성 검사
@@ -54,9 +57,7 @@ export default function RandomNumberPage() {
     }
 
     // 필요한 개수만 선택
-    const selectedNumbers = allNumbers
-      .slice(0, drawCount)
-      .sort((a, b) => a - b);
+    const selectedNumbers = allNumbers.slice(0, drawCount);
 
     if (showAnimation) {
       // 애니메이션 동작
@@ -97,6 +98,35 @@ export default function RandomNumberPage() {
       setDrawnNumbers(selectedNumbers);
       setIsDrawing(false);
       setAnimationComplete(true);
+    }
+  };
+
+  // 정렬된 숫자 배열 반환
+  const getSortedNumbers = () => {
+    if (sortOrder === "none") return drawnNumbers;
+    return [...drawnNumbers].sort((a, b) =>
+      sortOrder === "asc" ? a - b : b - a
+    );
+  };
+
+  // 정렬 순서 변경
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => {
+      if (prev === "none") return "asc";
+      if (prev === "asc") return "desc";
+      return "none";
+    });
+  };
+
+  // 정렬 아이콘 렌더링
+  const renderSortIcon = () => {
+    switch (sortOrder) {
+      case "asc":
+        return "↑";
+      case "desc":
+        return "↓";
+      default:
+        return "↕";
     }
   };
 
@@ -225,12 +255,23 @@ export default function RandomNumberPage() {
 
         {(isDrawing || animationComplete) && (
           <div className="bg-white p-6 rounded-lg shadow-md" ref={resultRef}>
-            <h2 className="text-xl font-semibold mb-5 text-blue-600">
-              {isDrawing ? "번호 추첨 중..." : "추첨 결과"}
-            </h2>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold text-blue-600">
+                {isDrawing ? "번호 추첨 중..." : "추첨 결과"}
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600">정렬</span>
+                <button
+                  onClick={toggleSortOrder}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  {renderSortIcon()}
+                </button>
+              </div>
+            </div>
 
             <div className="flex flex-wrap justify-center gap-4">
-              {drawnNumbers.map((number, index) => (
+              {getSortedNumbers().map((number, index) => (
                 <div
                   key={index}
                   className="w-20 h-20 flex items-center justify-center bg-blue-100 rounded-full border-4 border-blue-500"
