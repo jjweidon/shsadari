@@ -217,8 +217,12 @@ export default function LadderVisualizer({
   const teamElements = participants.map((participant, i) => {
     const x = (i + 1) * lineSpacing;
     const width = Math.min(lineSpacing * 0.8, 80);
-    const team =
-      sortedTeamAssignments[i]?.team || `팀 ${Math.floor(i / 3) + 1}`;
+
+    // 현재 참가자의 팀 찾기
+    const teamAssignment = teamAssignments.find(
+      (assignment) => assignment.position === participant.name
+    );
+    const team = teamAssignment?.team || `팀 ${Math.floor(i / 3) + 1}`;
 
     return (
       <foreignObject

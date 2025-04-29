@@ -8,8 +8,7 @@ import {
   generateLadder,
   calculateLadderResults,
   Participant,
-  LadderResult,
-  ParticipantResult,
+  LadderResult
 } from "@/utils/ladder";
 import ParticipantList from "@/components/ParticipantList";
 import GameSettings from "@/components/GameSettings";
@@ -19,9 +18,7 @@ import useLadderAnimation from "@/hooks/useLadderAnimation";
 
 function LadderGame() {
   const searchParams = useSearchParams();
-  const [participantsWithCharacters, setParticipantsWithCharacters] = useState<
-    Participant[]
-  >([]);
+  const [participantsWithCharacters, setParticipantsWithCharacters] = useState<Participant[]>([]);
   const [membersPerTeam, setMembersPerTeam] = useState<number>(0);
   const [showLadder, setShowLadder] = useState<boolean>(true);
   const [moveAllAtOnce, setMoveAllAtOnce] = useState<boolean>(true);
@@ -37,7 +34,7 @@ function LadderGame() {
   const ladderRef = useRef<HTMLDivElement>(null);
   const [ladderDimensions, setLadderDimensions] = useState({
     width: 0,
-    height: 0,
+    height: 0
   });
   const [showLimitWarning, setShowLimitWarning] = useState<boolean>(false);
 
@@ -50,7 +47,7 @@ function LadderGame() {
     previouslyAnimatedPlayers,
     setPreviouslyAnimatedPlayers,
     animatePlayer,
-    animateAllPlayers,
+    animateAllPlayers
   } = useLadderAnimation({
     participantsWithCharacters,
     moveAllAtOnce,
@@ -58,7 +55,7 @@ function LadderGame() {
     setIsPlaying,
     setAnimationComplete,
     setCurrentPlayerIndex,
-    ladderSpeed,
+    ladderSpeed
   });
 
   // URL에서 참가자 데이터 가져오기
@@ -82,7 +79,7 @@ function LadderGame() {
       if (containerRef.current) {
         setLadderDimensions({
           width: containerRef.current.offsetWidth,
-          height: Math.min(600, window.innerHeight * 0.6),
+          height: Math.min(600, window.innerHeight * 0.6)
         });
       }
     };
@@ -101,9 +98,7 @@ function LadderGame() {
   // 팀 크기 변경 시 팀 개수 계산
   useEffect(() => {
     if (participantsWithCharacters.length > 0 && membersPerTeam > 0) {
-      setTeamSizes(
-        createTeams(participantsWithCharacters.length, membersPerTeam)
-      );
+      setTeamSizes(createTeams(participantsWithCharacters.length, membersPerTeam));
     } else {
       setTeamSizes([]);
     }
@@ -126,11 +121,11 @@ function LadderGame() {
     if (containerRef.current) {
       setLadderDimensions({
         width: containerRef.current.offsetWidth,
-        height: Math.min(600, window.innerHeight * 0.6),
+        height: Math.min(600, window.innerHeight * 0.6)
       });
     }
 
-    const grid = generateLadder(participantsWithCharacters.length, teamSizes);
+    const grid = generateLadder(participantsWithCharacters.length);
     setLadder(grid);
 
     const initialPositions = Array(participantsWithCharacters.length)
@@ -143,11 +138,7 @@ function LadderGame() {
     setCurrentPlayerIndex(moveAllAtOnce ? -1 : 0);
     setPathSegments([]);
 
-    const calculatedResults = calculateLadderResults(
-      grid,
-      participantsWithCharacters,
-      teamSizes
-    );
+    const calculatedResults = calculateLadderResults(grid, participantsWithCharacters, teamSizes);
     setResults(calculatedResults);
 
     setPreviouslyAnimatedPlayers([]);
@@ -179,9 +170,7 @@ function LadderGame() {
     const text = Object.values(results.teamResults)
       .map(
         (team) =>
-          `${team.teamName}: ${team.members
-            .map((m) => `${m.character} ${m.name}`)
-            .join(", ")}`
+          `${team.teamName}: ${team.members.map((m) => `${m.character} ${m.name}`).join(", ")}`
       )
       .join("\n");
 
@@ -228,11 +217,7 @@ function LadderGame() {
         .join(",");
 
       if (resultParticipants !== currentParticipants) {
-        if (
-          window.confirm(
-            "참가자 정보가 변경되었습니다. 사다리를 다시 시작하시겠습니까?"
-          )
-        ) {
+        if (window.confirm("참가자 정보가 변경되었습니다. 사다리를 다시 시작하시겠습니까?")) {
           resetGame();
           setTimeout(() => {
             initializeLadder();
@@ -249,7 +234,7 @@ function LadderGame() {
   const teamAssignments = results
     ? results.participantResults.map((result) => ({
         position: result.participant.name,
-        team: result.team,
+        team: result.team
       }))
     : [];
 
@@ -284,33 +269,29 @@ function LadderGame() {
             onUpdateQueryString={updateQueryString}
           />
 
-          {participantsWithCharacters.length > 0 &&
-            !isPlaying &&
-            !animationComplete && (
-              <GameSettings
-                membersPerTeam={membersPerTeam}
-                showLadder={showLadder}
-                moveAllAtOnce={moveAllAtOnce}
-                ladderSpeed={ladderSpeed}
-                teamSizes={teamSizes}
-                isTeamSizeSelected={isTeamSizeSelected}
-                onMembersPerTeamChange={setMembersPerTeam}
-                onShowLadderChange={setShowLadder}
-                onMoveAllAtOnceChange={setMoveAllAtOnce}
-                onLadderSpeedChange={setLadderSpeed}
-                onStartGame={initializeLadder}
-                participantsCount={participantsWithCharacters.length}
-              />
-            )}
+          {participantsWithCharacters.length > 0 && !isPlaying && !animationComplete && (
+            <GameSettings
+              membersPerTeam={membersPerTeam}
+              showLadder={showLadder}
+              moveAllAtOnce={moveAllAtOnce}
+              ladderSpeed={ladderSpeed}
+              teamSizes={teamSizes}
+              isTeamSizeSelected={isTeamSizeSelected}
+              onMembersPerTeamChange={setMembersPerTeam}
+              onShowLadderChange={setShowLadder}
+              onMoveAllAtOnceChange={setMoveAllAtOnce}
+              onLadderSpeedChange={setLadderSpeed}
+              onStartGame={initializeLadder}
+              participantsCount={participantsWithCharacters.length}
+            />
+          )}
 
           {(isPlaying || animationComplete) && (
             <div ref={ladderRef}>
               <hr className="my-8 border-gray-200" />
 
               <h2 className="text-xl font-semibold mb-3 text-blue-600">
-                {isPlaying && !animationComplete
-                  ? "🪜 사다리 타는 중..."
-                  : "✓ 사다리 결과"}
+                {isPlaying && !animationComplete ? "🪜 사다리 타는 중..." : "✓ 사다리 결과"}
               </h2>
 
               {participantsWithCharacters.length > 50 && (

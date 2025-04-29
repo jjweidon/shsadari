@@ -25,10 +25,7 @@ export interface LadderResult {
   teamResults: Record<string, TeamResult>;
 }
 
-export const createTeams = (
-  totalParticipants: number,
-  membersPerTeam: number
-) => {
+export const createTeams = (totalParticipants: number, membersPerTeam: number) => {
   const limitedParticipants = Math.min(totalParticipants, 100);
   const fullTeams = Math.floor(limitedParticipants / membersPerTeam);
   const remainder = limitedParticipants % membersPerTeam;
@@ -52,18 +49,51 @@ export const createTeams = (
   return teamSizes;
 };
 
-export const generateLadder = (participants: number, teamSizes: number[]) => {
-  const horizontalProbability = Math.max(0.2, 0.5 - participants * 0.003);
-  const verticalLines = participants;
-  const maxHorizontalLines = Math.min(participants * 2, 100);
-  const grid: boolean[][] = Array(maxHorizontalLines)
+export const generateLadder = (participants: number) => {
+  const verticalLines = participants - 1;
+  const horizontalLines = Math.min(participants + 10, 30);
+  const grid: boolean[][] = Array(horizontalLines)
     .fill(null)
-    .map(() => Array(verticalLines - 1).fill(false));
+    .map(() => Array(verticalLines).fill(false));
 
-  for (let y = 0; y < maxHorizontalLines; y++) {
-    for (let x = 0; x < verticalLines - 1; x++) {
-      if (x > 0 && grid[y][x - 1]) continue;
-      grid[y][x] = Math.random() < horizontalProbability;
+  // 각 세로선(x)별 가로선 개수를 추적
+  const horizontalLineCounts = Array(verticalLines).fill(0);
+
+  // 각 높이(y)별 가로선 개수를 추적
+  const heightLineCounts = Array(horizontalLines).fill(0);
+
+  // 전체 가로선 개수 계산 (참가자 수에 비례)
+  const totalHorizontalLines = Math.floor(participants * 5);
+
+  // 가로선 생성
+  for (let i = 0; i < totalHorizontalLines; i++) {
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    while (attempts < maxAttempts) {
+      // 랜덤한 x 위치 선택
+      const x = Math.floor(Math.random() * verticalLines);
+      // 랜덤한 y 위치 선택
+      const y = Math.floor(Math.random() * horizontalLines);
+
+      // 해당 위치에 가로선을 그릴 수 있는지 확인
+      if (
+        // 이미 가로선이 있는지 확인
+        !grid[y][x] &&
+        // 같은 높이에 인접한 가로선이 없는지 확인
+        (x === 0 || !grid[y][x - 1]) &&
+        (x === verticalLines - 1 || !grid[y][x + 1]) &&
+        // 각 세로선의 가로선 개수가 너무 차이나지 않는지 확인
+        horizontalLineCounts[x] < Math.ceil(totalHorizontalLines / verticalLines) * 1.5 &&
+        // 각 높이의 가로선 개수가 너무 많은지 확인
+        heightLineCounts[y] < Math.ceil(verticalLines / 2)
+      ) {
+        grid[y][x] = true;
+        horizontalLineCounts[x]++;
+        heightLineCounts[y]++;
+        break;
+      }
+      attempts++;
     }
   }
 
@@ -98,12 +128,6 @@ export const calculateLadderResults = (
     results.push({ start, end: current, path });
   }
 
-  const participantResults = results.map((result) => ({
-    participant: participantsWithCharacters[result.start],
-    endPosition: result.end,
-    path: result.path,
-  }));
-
   const teamBoundaries: number[] = [];
   let currentBoundary = 0;
 
@@ -112,19 +136,19 @@ export const calculateLadderResults = (
     teamBoundaries.push(currentBoundary);
   });
 
-  const participantResultsWithTeam = participantResults.map((result) => {
+  const participantResults = results.map((result) => {
     let teamIndex = 0;
     for (let i = 0; i < teamBoundaries.length; i++) {
-      if (result.endPosition < teamBoundaries[i]) {
+      if (result.end < teamBoundaries[i]) {
         teamIndex = i;
         break;
       }
     }
 
     return {
-      participant: result.participant,
+      participant: participantsWithCharacters[result.start],
       team: `${teamIndex + 1}팀`,
-      path: result.path,
+      path: result.path
     };
   });
 
@@ -135,17 +159,15 @@ export const calculateLadderResults = (
     teamResults[teamName] = { teamName, members: [] };
   });
 
-  participantResultsWithTeam
+  participantResults
     .sort((a, b) => {
-      const aPos =
-        results.find(
-          (r) => r.start === participantsWithCharacters.indexOf(a.participant)
-        )?.end || 0;
-      const bPos =
-        results.find(
-          (r) => r.start === participantsWithCharacters.indexOf(b.participant)
-        )?.end || 0;
-      return aPos - bPos;
+      const aEnd =
+        results.find((r) => r.start === participantsWithCharacters.indexOf(a.participant))?.end ||
+        0;
+      const bEnd =
+        results.find((r) => r.start === participantsWithCharacters.indexOf(b.participant))?.end ||
+        0;
+      return aEnd - bEnd;
     })
     .forEach((result) => {
       const { team, participant } = result;
@@ -153,7 +175,7 @@ export const calculateLadderResults = (
     });
 
   return {
-    participantResults: participantResultsWithTeam,
-    teamResults,
+    participantResults,
+    teamResults
   };
 };
